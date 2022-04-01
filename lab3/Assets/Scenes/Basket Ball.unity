@@ -4491,7 +4491,7 @@ GameObject:
   - component: {fileID: 888122340}
   m_Layer: 0
   m_Name: PlayGround
-  m_TagString: Untagged
+  m_TagString: playable_ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -10832,12 +10832,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58adcb1fc9a4007479e1d46072642723, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controlMode: 1
   moveSpeed: 4
   rotSpeed: 240
   minThrowForce: 20
   maxThrowForce: 50
   maxForceTime: 1
   collision_cd: 0.05
+  playableTag: playable_ground
+  maxTPRange: 3
 --- !u!4 &1800746577
 Transform:
   m_ObjectHideFlags: 0
