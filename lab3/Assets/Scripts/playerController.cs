@@ -40,7 +40,7 @@ public class playerController : MonoBehaviour
     // Teleport stuff:
     public string playableTag;
     public float maxTPRange;
-
+    public GameObject teleportCircle;
 
 
 
@@ -81,32 +81,25 @@ public class playerController : MonoBehaviour
 
         euler = transform.eulerAngles;
 
-        if (controlMode == ControlMode.NORMAL)
-        {
+        if (controlMode == ControlMode.NORMAL) {
             // Movement input:
             Vector3 movement = MovementInputs();
-            if (movement.sqrMagnitude > 1e-6)
-            {
+            if (movement.sqrMagnitude > 1e-6) {
                 transform.eulerAngles = new Vector3(0, cam.transform.eulerAngles.y, 0); // Only move in xz plane
                 transform.Translate(movement * moveSpeed * Time.deltaTime);
             }
-        }
-        else if (controlMode == ControlMode.TELEPORT_INSTANT)
-        {
-            // Movement input:
-            Vector3 position;
-            if (TeleportPosition(out position))
-            {
-                transform.position = position;
+        } else if (controlMode == ControlMode.TELEPORT_INSTANT) {
+            if (Input.GetMouseButtonDown(1)) {
+                transform.position = RaycastPosition();
             }
-        }
-        else if (controlMode == ControlMode.TELEPORT_INSTANT)
-        {
-            // Movement input:
-            Vector3 position;
-            if (TeleportPositionPreview(out position))
-            {
-                transform.position = position;
+        } else if (controlMode == ControlMode.TELEPORT_PREVIEW) {
+            bool rightClickPressed = Input.GetMouseButton(1);
+            teleportCircle.SetActive(rightClickPressed);
+            if (rightClickPressed) {
+                teleportCircle.transform.position = RaycastPosition();
+            } else if (Input.GetMouseButtonUp(1)) {
+                // Only teleport when the user releases right click
+                transform.position = RaycastPosition();
             }
         }
 
@@ -121,41 +114,12 @@ public class playerController : MonoBehaviour
         return new Vector3(x, 0, z);
     }
 
-    // Returns the Vector3 with the position for the TP
-    private bool TeleportPosition(out Vector3 newPos)
-    {
-        bool moved = Input.GetMouseButtonDown(1);
-        if (moved) {
-            newPos = RaycastPosition();
-        }
-        else newPos = new Vector3();
-        return moved;
-    }
-    // Returns the Vector3 with the position for the TP
-    private bool TeleportPositionPreview(out Vector3 newPos)
-    {
-        bool moved = Input.GetMouseButtonUp(1);
-
-        if (moved)
-        {
-            newPos = RaycastPosition();
-        }
-        else
-        {
-            return false;
-        }
-        return moved;
-    }
-
     private Vector3 RaycastPosition()
     {
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, maxTPRange))
-        {
+        if (Physics.Raycast(transform.position, transform.forward, out hit, maxTPRange)) {
             return new Vector3(hit.point.x, transform.position.y, hit.point.z);
-        }
-        else
-        {
+        } else {
             Vector3 fwd = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
             return transform.position + fwd * maxTPRange;
         }
