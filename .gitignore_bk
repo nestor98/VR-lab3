@@ -64,8 +64,8 @@ crashlytics-build.properties
 #lab3/Assets/3dModel
 #lab3/Assets/Material for Basket Ball
 lab3/Library/
-lab3/Packages/
+#lab3/Packages/
 lab3/Logs/
-lab3/ProjectSettings/
+#lab3/ProjectSettings/
 lab3/Temp/
-lab3/UserSettings/
+#lab3/UserSettings/
