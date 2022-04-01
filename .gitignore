@@ -61,8 +61,8 @@ crashlytics-build.properties
 *.meta
 *.ini
 
-lab3/Assets/3dModel
-lab3/Assets/Material for Basket Ball
+#lab3/Assets/3dModel
+#lab3/Assets/Material for Basket Ball
 lab3/Library/
 lab3/Packages/
 lab3/Logs/
