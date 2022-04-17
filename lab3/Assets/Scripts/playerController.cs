@@ -14,6 +14,7 @@ public class playerController : MonoBehaviour
     };
 
     public ControlMode controlMode = ControlMode.TELEPORT_INSTANT;
+    public bool desktopMode = true;
 
 
     public float moveSpeed = 4.0f;
@@ -76,15 +77,18 @@ public class playerController : MonoBehaviour
 
     private void ApplyInputs()
     {
+        Vector3 euler = new Vector3(0,0,0);
+        if (desktopMode)
+        {
+            // Rotation input:
+            float y = Input.GetAxis("Mouse X"),
+                  x = -Input.GetAxis("Mouse Y");
 
-        // Rotation input:
-        float y = Input.GetAxis("Mouse X"),
-              x = -Input.GetAxis("Mouse Y");
+            euler = new Vector3(x, y, 0) * rotSpeed * Time.deltaTime;
+            transform.eulerAngles += euler;
 
-        Vector3 euler = new Vector3(x, y, 0) * rotSpeed * Time.deltaTime;
-        transform.eulerAngles += euler;
-
-        euler = transform.eulerAngles;
+            euler = transform.eulerAngles;
+        }
 
         if (controlMode == ControlMode.NORMAL) {
             // Movement input:
@@ -109,9 +113,11 @@ public class playerController : MonoBehaviour
                 transform.position = RaycastPosition();
             }
         }
-
-        // Restore latitude
-        transform.eulerAngles = euler;
+        if (desktopMode)
+        {
+            // Restore latitude
+            transform.eulerAngles = euler;
+        }
     }
     
     // Returns the Vector3 with the movement inputs
@@ -158,6 +164,13 @@ public class playerController : MonoBehaviour
         }
     }
 
+    private bool GetInputKey()
+    {
+        if (desktopMode) return Input.GetKey("z");
+        else return Input.anyKey;
+    }
+
+
     private void UpdateBall()
     {
         // Catch the ball
@@ -176,20 +189,39 @@ public class playerController : MonoBehaviour
                 body.angularVelocity = Vector3.zero;
                 // The CameraParent becomes the parent of the ball too.
                 item.transform.SetParent(transform);
-                if (Input.GetKey("z"))
+                if (desktopMode)
                 {
-                    currentHeldDownTime = Mathf.Min(currentHeldDownTime + Time.deltaTime, maxForceTime);
+                    if (GetInputKey())
+                    {
+                        currentHeldDownTime = Mathf.Min(currentHeldDownTime + Time.deltaTime, maxForceTime);
+                    }
+                    else if (Input.GetKeyUp("z"))
+                    {
+                        float throwForce = minThrowForce + (maxThrowForce - minThrowForce) * currentHeldDownTime / maxForceTime;
+                        print("Current throw force: " + throwForce);
+                        // Throw
+                        var cam = Camera.main;
+                        item.GetComponent<Rigidbody>().AddForce(
+                        cam.transform.forward * throwForce);
+                        isHolding = false;
+                        currentHeldDownTime = 0.0f;
+                    }
                 }
-                else if (Input.GetKeyUp("z")) {
-                    float throwForce = minThrowForce + (maxThrowForce - minThrowForce) * currentHeldDownTime / maxForceTime;
-                    print("Current throw force: " +  throwForce);
-                    // Throw
-                    var cam = Camera.main;
-                    item.GetComponent<Rigidbody>().AddForce(
-                    cam.transform.forward * throwForce);
-                    isHolding = false;
-                    currentHeldDownTime = 0.0f;
+                else
+                { // dont use keyup with phone
+                    if (Input.anyKey)
+                    {
+                        float throwForce = minThrowForce + (maxThrowForce - minThrowForce) / 2.0f;
+                        print("Current throw force: " + throwForce);
+                        // Throw
+                        var cam = Camera.main;
+                        item.GetComponent<Rigidbody>().AddForce(
+                        cam.transform.forward * throwForce);
+                        isHolding = false;
+                        currentHeldDownTime = 0.0f;
+                    }
                 }
+                
             }
             else
             {
