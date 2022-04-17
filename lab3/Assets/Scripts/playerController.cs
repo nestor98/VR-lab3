@@ -39,6 +39,8 @@ public class playerController : MonoBehaviour
 
     // Teleport stuff:
     public string playableTag;
+    public GameObject playGround;
+    private Rect playableRect;
     public float maxTPRange;
     public GameObject teleportCircle;
 
@@ -49,6 +51,9 @@ public class playerController : MonoBehaviour
     {
         //throwForce = minThrowForce;
         cam = Camera.main;
+
+        var bounds = playGround.GetComponent<BoxCollider>().bounds;
+        playableRect = new Rect(bounds.min.x, bounds.min.z, bounds.size.x, bounds.size.z);
     }
 
     // Update is called once per frame
@@ -96,7 +101,9 @@ public class playerController : MonoBehaviour
             bool rightClickPressed = Input.GetMouseButton(1);
             teleportCircle.SetActive(rightClickPressed);
             if (rightClickPressed) {
-                teleportCircle.transform.position = RaycastPosition();
+                Vector3 destination = RaycastPosition();
+                // Keep y coordinate of the circle:
+                teleportCircle.transform.position = new Vector3(destination.x, teleportCircle.transform.position.y, destination.z);
             } else if (Input.GetMouseButtonUp(1)) {
                 // Only teleport when the user releases right click
                 transform.position = RaycastPosition();
@@ -114,15 +121,26 @@ public class playerController : MonoBehaviour
         return new Vector3(x, 0, z);
     }
 
+    // Constrains the input position to the playground rectangle
+    private Vector3 ConstrainToPlayground(Vector3 input)
+    {
+        return new Vector3(Mathf.Clamp(input.x, playableRect.x, playableRect.x + playableRect.width),
+                           input.y,
+                           Mathf.Clamp(input.z, playableRect.y, playableRect.y + playableRect.height));
+    }
+
     private Vector3 RaycastPosition()
     {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, maxTPRange)) {
-            return new Vector3(hit.point.x, transform.position.y, hit.point.z);
-        } else {
-            Vector3 fwd = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
-            return transform.position + fwd * maxTPRange;
+        var hits = Physics.RaycastAll(transform.position, transform.forward, maxTPRange);
+        foreach (RaycastHit hit in hits) {
+            // Check if the hit is of the appropriate tag:
+            if (hit.transform.gameObject.tag == playableTag)
+            {
+                return new Vector3(hit.point.x, transform.position.y, hit.point.z);
+            }
         }
+        Vector3 fwd = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
+        return ConstrainToPlayground(transform.position + fwd * maxTPRange);
     }
 
     // Triggered by the physics events:
@@ -151,7 +169,7 @@ public class playerController : MonoBehaviour
             {
                 isHolding = false;
             }
-            if (isHolding == true)
+            else if (isHolding)
             {
                 Rigidbody body = item.GetComponent<Rigidbody>();
                 body.velocity = Vector3.zero;
