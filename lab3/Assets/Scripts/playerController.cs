@@ -64,6 +64,8 @@ public class playerController : MonoBehaviour
         ApplyInputs();
         //if (controlMode == TELEPORT_PREVIEW) ApplyInputsNormal();
 
+        if (!desktopMode && Input.anyKeyDown) Debug.Log(Input.inputString);
+
         // Handle ball interaction:
         UpdateBall();
 
@@ -77,7 +79,7 @@ public class playerController : MonoBehaviour
 
     private void ApplyInputs()
     {
-        Vector3 euler = new Vector3(0,0,0);
+        Vector3 euler = transform.eulerAngles;
         if (desktopMode)
         {
             // Rotation input:
@@ -113,17 +115,16 @@ public class playerController : MonoBehaviour
                 transform.position = RaycastPosition();
             }
         }
-        if (desktopMode)
-        {
-            // Restore latitude
-            transform.eulerAngles = euler;
-        }
+        
+        // Restore latitude
+        transform.eulerAngles = euler;
     }
     
     // Returns the Vector3 with the movement inputs
     private Vector3 MovementInputs()
     {
         float x = Input.GetAxis("Horizontal"), z = Input.GetAxis("Vertical");
+        if (!desktopMode) (x, z) = (z, -x); // Swap because of weird controller
         return new Vector3(x, 0, z);
     }
 
